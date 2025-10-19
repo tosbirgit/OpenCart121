@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" name="XMLConfigTest">
+  <Properties>
+    <Property name="basePath">./logs</Property>
+  </Properties>
+  
+  <Appenders>
+    <Appender type="Console" name="STDOUT">
+      <Layout type="PatternLayout" pattern="%m MDC%X%n"/>
+    </Appender>
+    
+    <Appender type="Console" name="FLOW">
+      <Layout type="PatternLayout" pattern="%C{1}.%M %m %ex%n"/>
+      <Filters>
+        <Filter type="MarkerFilter" marker="FLOW" onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+        <Filter type="MarkerFilter" marker="EXCEPTION" onMatch="ACCEPT" onMismatch="DENY"/>
+      </Filters>
+    </Appender>
+    
+    <Appender type="RollingFile" name="FileAppender" fileName="${basePath}/automation.log"
+              filePattern="${basePath}/automation-%d{yyyy-MM-dd}-%i.log.gz">
+      <Layout type="PatternLayout">
+        <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %C{1.} [%t] %m%n</Pattern>
+      </Layout>
+      <Policies>
+        <!-- Rollover every day -->
+        <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+        <!-- Or rollover if the file size reaches 10 MB -->
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="7">
+        <!-- Delete files older than 7 days when a rollover occurs -->
+        <Delete basePath="${basePath}" maxDepth="1">
+          <IfFileName glob="automation-*.log.gz"/>
+          <IfLastModified age="7d"/>
+        </Delete>
+      </DefaultRolloverStrategy>
+    </Appender>
+  </Appenders>
+  
+  <Loggers>
+    <Logger name="org.apache.logging.log4j.test1" level="debug" additivity="false">
+      <Filter type="ThreadContextMapFilter">
+        <KeyValuePair key="test" value="123"/>
+      </Filter>
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
+ 
+    <Logger name="org.apache.logging.log4j.test2" level="debug" additivity="false">
+      <AppenderRef ref="FileAppender"/>
+    </Logger>
+ 
+    <Root level="trace">
+      <AppenderRef ref="FileAppender"/>
+    </Root>
+  </Loggers>
+</Configuration>
